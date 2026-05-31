@@ -205,7 +205,8 @@ projets/
 ├── STATUS.md.example    # modèle de STATUS.md pour vos projets
 ├── README.md            # version anglaise
 ├── README.fr.md         # ce fichier
-└── TUTO.md              # tutoriel pas-à-pas (installer & adapter)
+├── TUTO.md              # tutoriel pas-à-pas (anglais)
+└── TUTO.fr.md           # tutoriel pas-à-pas (français)
 ```
 
 ## Licence

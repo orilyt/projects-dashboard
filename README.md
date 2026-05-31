@@ -207,7 +207,8 @@ projets/
 ├── STATUS.md.example    # STATUS.md template for your projects
 ├── README.md            # this file (English)
 ├── README.fr.md         # French version
-└── TUTO.md              # step-by-step tutorial (install & adapt) — currently French
+├── TUTO.md              # step-by-step tutorial (install & adapt, English)
+└── TUTO.fr.md           # French tutorial
 ```
 
 ## License

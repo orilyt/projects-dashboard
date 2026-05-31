@@ -1,7 +1,7 @@
 ---
 status: en cours
 progress: 90
-next: Traduire TUTO.md en anglais (README déjà bilingue) ; ajouter une capture d'aperçu neutre
+next: Ajouter une capture d'aperçu neutre (docs/preview.png) + la régler en social preview GitHub
 updated: 2026-05-31
 ---
 
@@ -24,9 +24,9 @@ Dashboard PHP pur (zéro dépendance) qui scanne un dossier de projets, déduit 
 - **Mise en partage** : config externalisée (`config.example.php` ; `config.php` local
   gitignoré), docs `README.md` + `TUTO.md`, licence MIT.
 - **Publié** : repo public github.com/orilyt/projects-dashboard (historique vierge,
-  e-mail noreply). README **bilingue** (`README.md` EN / `README.fr.md` FR).
+  e-mail noreply). **Bilingue** : `README.md`/`TUTO.md` (EN) + `README.fr.md`/`TUTO.fr.md` (FR).
 
 ## À faire
 
-- Traduire `TUTO.md` en anglais (encore FR) ; ajouter une capture d'aperçu neutre.
+- Ajouter une capture d'aperçu neutre (`docs/preview.png`) + social preview GitHub.
 - Maintenir le miroir public à jour après chaque modif (git archive → push).

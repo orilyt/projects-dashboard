@@ -1,168 +1,171 @@
-# Tutoriel — installer le dashboard et l'adapter à vos projets
+# Tutorial — install the dashboard and adapt it to your projects
 
-Objectif : passer d'un serveur local vierge à un dashboard qui liste **vos** projets,
-en ~10 minutes. Aucun prérequis au-delà de PHP et d'un serveur local.
+**English** · [Français](TUTO.fr.md)
 
-> Pour la référence complète des options, voir [README.md](README.md). Ici, on déroule.
+Goal: go from a blank local server to a dashboard listing **your** projects in ~10 minutes.
+Nothing required beyond PHP and a local server.
+
+> For the full option reference, see [README.md](README.md). Here, we just walk through it.
 
 ---
 
-## Étape 0 — Avoir un serveur local
+## Step 0 — Have a local server
 
-Choisissez **une** option :
+Pick **one** option:
 
-| Outil | Comment servir le dossier |
+| Tool | How to serve the folder |
 |---|---|
-| **Laragon** (Windows) | Placez le dossier dans `C:\laragon\www\`. Auto-vhost `http://projets.test`. |
-| **XAMPP / WAMP / MAMP** | Placez le dossier dans `htdocs/` (ou `www/`). `http://localhost/projets/`. |
-| **PHP seul** (tout OS) | Depuis le dossier : `php -S localhost:8000` → `http://localhost:8000`. |
+| **Laragon** (Windows) | Put the folder in `C:\laragon\www\`. Auto-vhost `http://projets.test`. |
+| **XAMPP / WAMP / MAMP** | Put the folder in `htdocs/` (or `www/`). `http://localhost/projets/`. |
+| **PHP only** (any OS) | From the folder: `php -S localhost:8000` → `http://localhost:8000`. |
 
-Vérifiez que PHP est en **8.0+** : `php -v`.
+Check PHP is **8.0+**: `php -v`.
 
 ---
 
-## Étape 1 — Récupérer les fichiers
+## Step 1 — Get the files
 
-Clonez ou copiez ce dossier `projets/` **dans votre racine web, à côté de vos sites** :
+Clone or copy this `projets/` folder **into your web root, next to your sites**:
 
 ```
-www/                 (ou htdocs/, ou le dossier que vous servez)
-├── projets/         ← le dashboard
-├── client-alpha/    ← vos projets…
-├── boutique-beta/
+www/                 (or htdocs/, or whatever folder you serve)
+├── projets/         ← the dashboard
+├── client-alpha/    ← your projects…
+├── shop-beta/
 └── api-gamma/
 ```
 
-La logique : le dashboard scanne son **dossier parent** et traite chaque sous-dossier
-comme un projet. Placé dans `www/`, il liste tout `www/`.
+The logic: the dashboard scans its **parent folder** and treats each subfolder as a
+project. Placed in `www/`, it lists all of `www/`.
 
 ---
 
-## Étape 2 — Créer votre configuration
+## Step 2 — Create your configuration
 
 ```bash
 cd projets
-cp config.example.php config.php      # Windows : copy config.example.php config.php
+cp config.example.php config.php      # Windows: copy config.example.php config.php
 ```
 
-`config.php` est **à vous** (ignoré par git). Ouvrez-le : les valeurs par défaut
-conviennent pour « scanner le dossier parent ». On l'ajuste à l'étape 4.
+`config.php` is **yours** (git-ignored). Open it: the defaults work for "scan the parent
+folder". We tune it in step 4.
 
 ---
 
-## Étape 3 — Ouvrir le dashboard
+## Step 3 — Open the dashboard
 
-- Laragon / vhost : `http://projets.test`
-- XAMPP & co : `http://localhost/projets/`
-- `php -S` : `http://localhost:8000`
+- Laragon / vhost: `http://projets.test`
+- XAMPP & co: `http://localhost/projets/`
+- `php -S`: `http://localhost:8000`
 
-Vous devez voir la liste de vos dossiers, avec leur activité git et un statut présumé.
-Si la page est blanche : voir [Dépannage](#dépannage).
+You should see the list of your folders, with their git activity and a presumed status.
+If the page is blank: see [Troubleshooting](#troubleshooting).
 
 ---
 
-## Étape 4 — Adapter le scan à votre arborescence
+## Step 4 — Adapt the scan to your layout
 
-Dans `config.php` :
+In `config.php`:
 
-- **Scanner un autre dossier** que le parent :
+- **Scan a folder other than the parent**:
   ```php
   'root' => 'C:\\sites',        // Windows
   'root' => '/var/www',         // Linux/macOS
   ```
-- **Cacher des dossiers** qui ne sont pas des projets :
+- **Hide folders** that aren't projects:
   ```php
   'exclude'        => ['projets', 'vendor', '_archives', 'phpmyadmin'],
-  'exclude_prefix' => '_',      // cache aussi _backups, _drafts, …
+  'exclude_prefix' => '_',      // also hides _backups, _drafts, …
   ```
-- **Afficher un dossier hors racine web** (lu côté serveur, jamais exposé en HTTP) :
+- **Show a folder outside the web root** (read server-side, never exposed over HTTP):
   ```php
   'extra_roots' => ['C:\\Backups\\ops'],
   ```
 
-Rechargez la page après chaque changement.
+Reload the page after each change.
 
 ---
 
-## Étape 5 — Donner un avancement « métier » à un projet
+## Step 5 — Give a project a "real" progress
 
-Le dashboard devine l'activité, mais **vous** seul savez où en est un projet. Ajoutez un
-`STATUS.md` à la racine **du projet** (pas du dashboard) :
+The dashboard guesses activity, but **you** alone know where a project stands. Add a
+`STATUS.md` at the **project's** root (not the dashboard's):
 
 ```markdown
 ---
 status: en cours
 progress: 45
-next: Brancher le paiement Stripe
+next: Wire up Stripe payment
 updated: 2026-05-31
 ---
 ```
 
-Rechargez : la ligne du projet affiche maintenant votre statut, la barre à 45 %, et la
-prochaine étape. Copiez [`STATUS.md.example`](STATUS.md.example) comme point de départ.
+Reload: the project's row now shows your status, the bar at 45%, and the next step. Copy
+[`STATUS.md.example`](STATUS.md.example) as a starting point. (Status labels are French by
+default and map to colours — see the README note.)
 
-Projet à plusieurs fronts ? Laissez `status`/`progress` vides et ajoutez un tableau
-`## Chantiers` (voir README) — le dashboard fait la moyenne.
+Project on several fronts? Leave `status`/`progress` empty and add a `## Chantiers` table
+(see README) — the dashboard averages them.
 
 ---
 
-## Étape 6 (optionnel, avancé) — Le bouton « Claude » / commande locale
+## Step 6 (optional, advanced) — The "Claude" button / local command
 
-> ⚠️ **Lisez la section Sécurité du README avant.** Ceci active un endpoint qui
-> **exécute une commande système**. À réserver à un **poste local mono-utilisateur**
-> servi en `127.0.0.1`. Jamais sur un réseau / host partagé. Windows + WSL.
+> ⚠️ **Read the README's Security section first.** This enables an endpoint that **runs a
+> system command**. For a **single-user local machine** served on `127.0.0.1` only. Never
+> on a network / shared host. Windows + WSL.
 
-1. Dans `config.php` :
+1. In `config.php`:
    ```php
    'enable_launch' => true,
    'launch' => [
-       'wsl_distro' => 'Ubuntu',                  // votre distro : wsl -l -q
-       'command'    => 'claude --continue || claude', // ou 'code .', 'git status', …
+       'wsl_distro' => 'Ubuntu',                  // your distro: wsl -l -q
+       'command'    => 'claude --continue || claude', // or 'code .', 'git status', …
    ],
    ```
-2. Rechargez. Un bouton apparaît sur chaque ligne ; un clic ouvre Windows Terminal dans
-   le dossier du projet et lance votre commande.
-3. La commande est libre : remplacez-la par ce que vous voulez exécuter au lancement
-   d'un projet (éditeur, shell, script de setup…).
+2. Reload. A button appears on each row; a click opens Windows Terminal in the project
+   folder and runs your command.
+3. The command is free: replace it with whatever you want to run when opening a project
+   (editor, shell, setup script…).
 
-**Linux / macOS** : le mécanisme fourni s'appuie sur `wt.exe` / `wsl.exe` /
-`launch-claude.bat` (Windows). Il est **adaptable** (terminal natif via
-`gnome-terminal`/`osascript`, en éditant le handler `launch` d'`index.php`) — voir le
-README, section « Sur Linux / macOS ». **Non testé par l'auteur.** En attendant, laissez
-`enable_launch => false` ; le reste du dashboard fonctionne partout.
+**Linux / macOS**: the shipped mechanism relies on `wt.exe` / `wsl.exe` /
+`launch-claude.bat` (Windows). It's **adaptable** (native terminal via
+`gnome-terminal`/`osascript`, by editing the `launch` handler in `index.php`) — see the
+README, "On Linux / macOS" section. **Untested by the author.** In the meantime leave
+`enable_launch => false`; the rest of the dashboard works everywhere.
 
 ---
 
-## Dépannage
+## Troubleshooting
 
-| Symptôme | Piste |
+| Symptom | Likely cause |
 |---|---|
-| **Page blanche** | PHP < 8.0, ou `config.php` mal copié. Vérifiez `php -v` ; regardez les logs PHP / activez `display_errors`. |
-| **Aucun projet listé** | `root` pointe au mauvais endroit, ou tout est dans `exclude`. |
-| **Un dossier manque** | Il commence par `exclude_prefix` (`_`) ou est dans `exclude`. |
-| **Bouton Claude : `forbidden`** | Normal hors loopback ou sans rechargement (jeton CSRF). Servez en `127.0.0.1` et rechargez. |
-| **Bouton Claude : `launch désactivé`** | `enable_launch` est `false` dans `config.php`. |
-| **Bouton Claude : aucune fenêtre** | Le serveur ne peut pas ouvrir de fenêtre GUI (session non interactive). Voir le fallback console dans `launch-claude.bat`. |
+| **Blank page** | PHP < 8.0, or `config.php` badly copied. Check `php -v`; look at PHP logs / enable `display_errors`. |
+| **No project listed** | `root` points to the wrong place, or everything is in `exclude`. |
+| **A folder is missing** | It starts with `exclude_prefix` (`_`) or is in `exclude`. |
+| **Claude button: `forbidden`** | Normal off-loopback or without a reload (CSRF token). Serve on `127.0.0.1` and reload. |
+| **Claude button: `launch désactivé`** | `enable_launch` is `false` in `config.php`. |
+| **Claude button: no window** | The server can't open a GUI window (non-interactive session). See the console fallback in `launch-claude.bat`. |
 
 ---
 
-## Comprendre le code en 30 secondes (pour étendre)
+## Understand the code in 30 seconds (to extend it)
 
-`index.php` est **un seul fichier** dans cet ordre :
+`index.php` is **a single file** in this order:
 
-1. **Config** : charge `config.php`.
-2. **Endpoint launch** : court-circuit si requête POST `launch` (sinon ignoré).
-3. **Helpers** : `scanActivity()`, `gitInfo()`, `statusFile()`, etc.
-4. **Collecte** : `foreach` sur les dossiers → tableau `$projects`.
-5. **Rendu HTML** + **CSS inline** (`:root` pour les couleurs) + **JS** (filtre/tri).
+1. **Config**: loads `config.php`.
+2. **Launch endpoint**: short-circuits on a POST `launch` request (otherwise ignored).
+3. **Helpers**: `scanActivity()`, `gitInfo()`, `statusFile()`, etc.
+4. **Collection**: a `foreach` over the folders → `$projects` array.
+5. **HTML render** + **inline CSS** (`:root` for colours) + **JS** (filter/sort).
 
-Pour ajouter une colonne : ajoutez la donnée dans la collecte, une cellule dans le rendu,
-et au besoin une entête dans `.thead`. Pas de framework, pas de build — éditez, rechargez.
+To add a column: add the data in the collection, a cell in the render, and a header in
+`.thead` if needed. No framework, no build — edit, reload.
 
 ---
 
-## Licence
+## License
 
-Ce projet est **open source sous licence [MIT](LICENSE)** : vous pouvez l'utiliser, le
-modifier et le redistribuer librement (y compris dans un cadre commercial), en conservant
-la mention de copyright. Adaptez-le sans contrainte à vos besoins.
+This project is **open source under the [MIT](LICENSE) license**: use it, modify it and
+redistribute it freely (including commercially), keeping the copyright notice. Adapt it to
+your needs without restriction.
