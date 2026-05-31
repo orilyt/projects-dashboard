@@ -1,0 +1,46 @@
+---
+status: en cours
+progress: 60
+next: Brancher l'authentification avant la mise en prod
+updated: 2026-05-31
+---
+
+# Avancement — Nom du projet
+
+Copie ce fichier à la RACINE d'un projet (ex: mon-projet/STATUS.md)
+et le tableau de bord lira automatiquement les blocs ci-dessous.
+
+## Le bloc frontmatter (entre les --- en haut)
+
+- `status`   : libellé libre. Couleurs reconnues :
+               idée · en cours · en pause · bloqué · terminé · abandonné
+- `progress` : 0 à 100 (affiche la barre + tri par avancement)
+- `next`     : prochaine étape concrète (affichée en évidence sur la ligne)
+- `updated`  : date de dernière mise à jour (toi ou Claude)
+
+Tout est optionnel. Sans STATUS.md, la ligne affiche un statut *déduit*
+(actif / ralenti / en sommeil) basé sur la date du dernier commit ou fichier modifié.
+
+## Chantiers (optionnel — pour les projets à plusieurs fronts)
+
+Ajoute un tableau markdown sous un titre « ## Chantiers ». Une ligne = un chantier.
+Colonnes attendues, dans cet ordre : chantier | statut | progress (0-100) | next.
+
+| chantier      | statut   | progress | next                         |
+|---------------|----------|----------|------------------------------|
+| Front public  | en cours | 80       | Finaliser la page tarifs     |
+| API           | en pause | 40       | Reprendre après le front     |
+| SEO           | terminé  | 100      | —                            |
+
+Règles d'agrégation au niveau projet :
+- Si `progress` (frontmatter) est VIDE, le dashboard affiche la **moyenne** des
+  chantiers chiffrés (le `%` est alors suivi d'un `~` = estimé).
+- Si `status` (frontmatter) est VIDE, le statut projet est **déduit** des chantiers
+  (un bloqué → bloqué ; tous terminés → terminé ; sinon en cours).
+- Renseigner `status`/`progress` en frontmatter **force** ces valeurs (priorité sur
+  l'agrégation), utile si ton ressenti global diffère de la moyenne mécanique.
+
+## Notes libres
+
+Tout le reste du fichier est ignoré par le dashboard : journal de bord, TODO,
+décisions d'archi, etc.

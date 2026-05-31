@@ -1,0 +1,15 @@
+# Backups
+*.bak
+*.bak.*
+index.php.bak.*
+
+# Runtime/état des hooks
+.claude/hooks/last_run_files.txt
+.claude/hooks/*.tmp
+.claude/hooks/*.tmp.*
+
+# Réglages locaux Claude Code
+.claude/settings.local.json
+
+# Config locale du dashboard (chemins/secrets propres au poste) — voir config.example.php
+config.php
