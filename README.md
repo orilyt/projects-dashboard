@@ -11,7 +11,7 @@ optional `STATUS.md` at each project's root.
 Built for a local dev machine (Laragon, XAMPP, MAMP, `php -S`…) where you juggle many
 sites and want a single overview: *what's where, what's moving, what's next*.
 
-<!-- Add your screenshot here, e.g.: ![preview](docs/preview.png) -->
+![Dashboard preview](docs/preview.png)
 
 ---
 

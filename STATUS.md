@@ -1,7 +1,7 @@
 ---
 status: en cours
 progress: 90
-next: Ajouter une capture d'aperçu neutre (docs/preview.png) + la régler en social preview GitHub
+next: Régler docs/preview.png en social preview GitHub (Settings → Social preview) ; promo communautés (r/PHP…)
 updated: 2026-05-31
 ---
 

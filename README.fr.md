@@ -12,7 +12,7 @@ Pensé pour un poste de dev local (Laragon, XAMPP, MAMP, `php -S`…) où l'on j
 beaucoup de sites et où l'on veut une vue d'ensemble : *où en est quoi, qu'est-ce qui
 bouge, quelle est la prochaine étape*.
 
-<!-- Ajoutez votre capture d'écran, p.ex. : ![aperçu](docs/preview.png) -->
+![Aperçu du dashboard](docs/preview.png)
 
 ---
 
