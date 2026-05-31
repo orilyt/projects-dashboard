@@ -1,7 +1,7 @@
 ---
 status: en cours
 progress: 90
-next: Choisir le mode de livraison (git archive, sans historique ni config.php) et une capture d'aperçu neutre
+next: Traduire TUTO.md en anglais (README déjà bilingue) ; ajouter une capture d'aperçu neutre
 updated: 2026-05-31
 ---
 
@@ -23,9 +23,10 @@ Dashboard PHP pur (zéro dépendance) qui scanne un dossier de projets, déduit 
   protégé (POST + token CSRF + loopback). Voir README §Sécurité.
 - **Mise en partage** : config externalisée (`config.example.php` ; `config.php` local
   gitignoré), docs `README.md` + `TUTO.md`, licence MIT.
+- **Publié** : repo public github.com/orilyt/projects-dashboard (historique vierge,
+  e-mail noreply). README **bilingue** (`README.md` EN / `README.fr.md` FR).
 
 ## À faire
 
-- `progress` 90 = ressenti : reste la mise en distribution.
-- Livrer via `git archive` (arbre propre, sans `.git` ni `config.php`) plutôt qu'une
-  copie de dossier ; ajouter une capture d'aperçu neutre.
+- Traduire `TUTO.md` en anglais (encore FR) ; ajouter une capture d'aperçu neutre.
+- Maintenir le miroir public à jour après chaque modif (git archive → push).
