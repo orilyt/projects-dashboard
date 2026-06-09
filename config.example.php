@@ -45,6 +45,16 @@ return [
         'command'    => 'claude --continue || claude', // exécutée dans le dossier du projet
     ],
 
+    // ----------------------------------------------------------------
+    //  Bouton "+ Nouveau projet" — CRÉE UN DOSSIER via mkdir(). ⚠️ DANGER.
+    // ----------------------------------------------------------------
+    // Comme enable_launch : à ne passer à true QUE sur un poste local mono-
+    // utilisateur servi en loopback. Activé, c'est un endpoint qui crée un
+    // dossier dans `root` à partir d'un nom saisi (sanitisé : [A-Za-z0-9._-],
+    // confiné à `root`). Si enable_launch est aussi true, Claude est lancé sur
+    // le dossier fraîchement créé ; sinon le dossier est juste créé.
+    'enable_create' => false,
+
     // Perf : plafond de fichiers scannés par projet pour estimer la dernière activité.
     'scan_file_cap' => 4000,
 

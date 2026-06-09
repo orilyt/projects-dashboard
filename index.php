@@ -105,6 +105,88 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['launch'])) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Création d'un nouveau projet (bouton "+ Nouveau projet")            */
+/* OUTIL LOCAL MONO-POSTE : mkdir dans $ROOT puis, si enable_launch,    */
+/* spawn Claude dessus. Contrairement au launch, le chemin est DÉRIVÉ   */
+/* d'un nom saisi -> sanitisation stricte + confinement à $ROOT.        */
+/* ------------------------------------------------------------------ */
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['create'])) {
+    header('Content-Type: application/json');
+
+    // Opt-in : désactivé par défaut (config). mkdir depuis un input = dangereux.
+    if (empty($CFG['enable_create'])) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'err' => 'création désactivée (enable_create=false)']);
+        exit;
+    }
+
+    // Même garde anti-CSRF que le launch : POST + token de session + loopback.
+    $tok = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    $ip  = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!in_array($ip, ['127.0.0.1', '::1'], true) || !hash_equals($_SESSION['csrf'], $tok)) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'err' => 'forbidden']);
+        exit;
+    }
+
+    // Sanitisation STRICTE du nom -> nom de dossier. Seuls [A-Za-z0-9._-], une
+    // lettre/chiffre en tête (pas de dossier caché ni de "."/".."), longueur bornée.
+    // Tout le reste est REFUSÉ : pas de remplacement silencieux qui masquerait
+    // une tentative de path traversal (/, \, .., :, espaces…).
+    $name = trim((string) $_POST['create']);
+    if ($name === '' || strlen($name) > 64 || !preg_match('~^[A-Za-z0-9][A-Za-z0-9._-]*$~', $name)) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'err' => 'nom invalide (lettres, chiffres, . _ - ; pas de / \\ ni espace)']);
+        exit;
+    }
+    if (in_array($name, $EXCLUDE, true) || $name[0] === $EXCLUDE_PREFIX) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'err' => 'nom réservé']);
+        exit;
+    }
+
+    // Confinement : le parent résolu du dossier cible doit être EXACTEMENT $ROOT.
+    $dest     = $ROOT . DIRECTORY_SEPARATOR . $name;
+    $realRoot = realpath($ROOT);
+    $parent   = realpath(dirname($dest));
+    if ($realRoot === false || $parent === false || $parent !== $realRoot) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'err' => 'chemin hors racine']);
+        exit;
+    }
+    if (is_dir($dest) || is_file($dest)) {
+        http_response_code(409);
+        echo json_encode(['ok' => false, 'err' => 'existe déjà']);
+        exit;
+    }
+    if (!@mkdir($dest, 0775)) {
+        http_response_code(500);
+        echo json_encode(['ok' => false, 'err' => 'mkdir a échoué']);
+        exit;
+    }
+
+    // Lancement optionnel de Claude sur le nouveau dossier (Windows + WSL only).
+    // Si enable_launch est off ou si la conversion de chemin échoue (hors Windows),
+    // on s'arrête après le mkdir : le dossier est créé, simplement pas de spawn.
+    $launched = false;
+    if (!empty($CFG['enable_launch'])) {
+        $win = str_replace('\\', '/', $dest);
+        if (preg_match('~^([A-Za-z]):/(.*)$~', $win, $m)) {
+            $wsl    = '/mnt/' . strtolower($m[1]) . '/' . $m[2];
+            $bat    = __DIR__ . '\\launch-claude.bat';
+            $distro = $CFG['launch']['wsl_distro'];
+            $cmd    = $CFG['launch']['command'];
+            exec('cmd /c ' . $bat . ' ' . escapeshellarg($wsl)
+                    . ' ' . escapeshellarg($distro) . ' ' . escapeshellarg($cmd), $out, $rc);
+            $launched = ($rc === 0);
+        }
+    }
+
+    echo json_encode(['ok' => true, 'name' => $name, 'launched' => $launched]);
+    exit;
+}
+
+/* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -436,6 +518,11 @@ $withStatus= count(array_filter($projects, fn($p) => $p['status'] && $p['status'
   .claunch:hover{background:#818cf8;border-color:#a5b4fc;box-shadow:0 2px 6px rgba(99,102,241,.45)}
   .claunch:disabled{cursor:default;background:var(--panel2);color:var(--muted);
     border-color:var(--line);box-shadow:none}
+  .newproj{background:var(--accent);border:1px solid #818cf8;color:#fff;
+    font:700 13px/1 inherit;padding:9px 14px;border-radius:9px;cursor:pointer;
+    white-space:nowrap;transition:background .12s,border-color .12s}
+  .newproj:hover{background:#818cf8;border-color:#a5b4fc}
+  .newproj:disabled{cursor:default;background:var(--panel2);color:var(--muted);border-color:var(--line)}
   details.tracks{margin-top:2px}
   details.tracks>summary{cursor:pointer;font-size:13px;color:var(--accent);
     list-style:none;display:inline-flex;align-items:center;gap:5px;user-select:none}
@@ -490,6 +577,9 @@ $withStatus= count(array_filter($projects, fn($p) => $p['status'] && $p['status'
       <option value="status">Avec STATUS.md</option>
       <option value="git">Avec git</option>
     </select>
+    <?php if (!empty($CFG['enable_create'])): ?>
+      <button id="newproj" class="newproj" title="Créer un dossier projet dans c:\laragon\www…">+ Nouveau projet</button>
+    <?php endif ?>
   </div>
 
   <div class="list" id="list">
@@ -639,6 +729,38 @@ $withStatus= count(array_filter($projects, fn($p) => $p['status'] && $p['status'
       } catch (e) { b.textContent = '✗ échec'; }
       setTimeout(() => { b.textContent = label; b.disabled = false; }, 2500);
     });
+  });
+
+  // Bouton "+ Nouveau projet" : demande un nom -> POST create -> mkdir local
+  // (+ spawn Claude si enable_launch), puis recharge pour voir le projet.
+  const nb = document.getElementById('newproj');
+  if (nb) nb.addEventListener('click', async () => {
+    const name = (prompt('Nom du nouveau projet (lettres, chiffres, . _ - ) :') || '').trim();
+    if (!name) return;
+    const lbl = nb.textContent;
+    nb.disabled = true; nb.textContent = '… création';
+    try {
+      const r = await fetch('index.php', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': CSRF,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'create=' + encodeURIComponent(name)
+      });
+      const j = await r.json();
+      if (j.ok) {
+        nb.textContent = j.launched ? '✓ créé + Claude' : '✓ créé';
+        setTimeout(() => location.reload(), 700);
+      } else {
+        nb.textContent = '✗ ' + (j.err || 'échec');
+        nb.disabled = false;
+        setTimeout(() => { nb.textContent = lbl; }, 3000);
+      }
+    } catch (e) {
+      nb.textContent = '✗ échec'; nb.disabled = false;
+      setTimeout(() => { nb.textContent = lbl; }, 3000);
+    }
   });
 })();
 </script>

@@ -30,6 +30,8 @@ sites and want a single overview: *what's where, what's moving, what's next*.
   them over HTTP.
 - **Optional "Claude" button** (Windows + WSL out of the box; adaptable to Linux/macOS):
   reopen a project in a local terminal. **Off by default** — see [Security](#security).
+- **Optional "New project" button**: create a project folder right from the dashboard (and,
+  if the Claude button is on, open Claude on it). **Off by default** — see [Security](#security).
 
 ---
 
@@ -85,6 +87,7 @@ each machine has its own). Keys:
 | `enable_launch` | Enables the "Claude" button (**local exec — see Security**). `false` by default. |
 | `launch.wsl_distro` | WSL distro name (`wsl -l -q`). |
 | `launch.command` | Command run inside the project folder. |
+| `enable_create` | Enables the "New project" button (**local `mkdir` — see Security**). `false` by default. |
 | `scan_file_cap` | Per-project cap on files scanned to estimate activity (perf). |
 | `skip_dirs` | Folders never traversed during that scan (heavy ones). |
 
@@ -173,11 +176,16 @@ machine serving PHP. Protections in place:
 - **Allowlist**: only an actually-scanned project name is accepted; the path is derived
   server-side, never built from user input.
 
-**If you enable it:**
+The **"New project" button** (`enable_create`, also `false` by default) shares the same
+POST + CSRF + loopback guards, plus: the submitted name must match `^[A-Za-z0-9][A-Za-z0-9._-]*$`
+(no `/`, `\`, `..`, `:`, spaces) and the resolved parent must be exactly `root` (`realpath`
+check) — so `mkdir` can never escape the scanned folder.
+
+**If you enable either:**
 
 - **Single-user local machine only.** **Never** serve this dashboard on `0.0.0.0`, a
-  network, a shared or public host with `enable_launch = true` — that would be **remote
-  command execution**.
+  network, a shared or public host with `enable_launch` / `enable_create = true` — that
+  would be **remote command execution** / arbitrary folder creation.
 - Don't remove the loopback / CSRF checks.
 - `extra_roots` is read server-side but **not** served over HTTP — don't place the
   dashboard *inside* a folder containing secrets and assume they're protected; what's
@@ -200,7 +208,7 @@ machine serving PHP. Protections in place:
 
 ```
 projets/
-├── index.php            # the whole app: scan + render + launch endpoint (PHP + HTML + CSS + JS)
+├── index.php            # the whole app: scan + render + launch/create endpoints (PHP + HTML + CSS + JS)
 ├── config.example.php   # config template (committed)
 ├── config.php           # your local config (git-ignored)
 ├── launch-claude.bat    # Windows/WSL launcher for the "Claude" button (optional)

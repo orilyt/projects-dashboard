@@ -136,6 +136,22 @@ README, "On Linux / macOS" section. **Untested by the author.** In the meantime 
 
 ---
 
+## Step 6b (optional) — The "New project" button
+
+> ⚠️ Same caveats as Step 6: **single-user local machine, loopback only.** This enables an
+> endpoint that creates a folder (`mkdir`) under `root` from a submitted name.
+
+1. In `config.php`: `'enable_create' => true,`
+2. Reload. A **"+ New project"** button appears in the toolbar.
+3. Click it, type a name (letters, digits, `. _ -`). The folder is created under `root`.
+   If `enable_launch` is also `true`, Claude opens on the fresh folder; otherwise the
+   folder is just created and the page reloads.
+
+The name is sanitised server-side (`^[A-Za-z0-9][A-Za-z0-9._-]*$`) and confined to `root`
+via a `realpath` check — `mkdir` can't escape the scanned folder.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Likely cause |
@@ -146,6 +162,8 @@ README, "On Linux / macOS" section. **Untested by the author.** In the meantime 
 | **Claude button: `forbidden`** | Normal off-loopback or without a reload (CSRF token). Serve on `127.0.0.1` and reload. |
 | **Claude button: `launch désactivé`** | `enable_launch` is `false` in `config.php`. |
 | **Claude button: no window** | The server can't open a GUI window (non-interactive session). See the console fallback in `launch-claude.bat`. |
+| **No "New project" button** | `enable_create` is `false` (or missing) in `config.php`. |
+| **New project: `nom invalide`** | The name has characters outside `A-Z a-z 0-9 . _ -` (no `/`, `\`, space). |
 
 ---
 
@@ -154,7 +172,7 @@ README, "On Linux / macOS" section. **Untested by the author.** In the meantime 
 `index.php` is **a single file** in this order:
 
 1. **Config**: loads `config.php`.
-2. **Launch endpoint**: short-circuits on a POST `launch` request (otherwise ignored).
+2. **Launch / create endpoints**: short-circuit on a POST `launch` or `create` request (otherwise ignored).
 3. **Helpers**: `scanActivity()`, `gitInfo()`, `statusFile()`, etc.
 4. **Collection**: a `foreach` over the folders → `$projects` array.
 5. **HTML render** + **inline CSS** (`:root` for colours) + **JS** (filter/sort).

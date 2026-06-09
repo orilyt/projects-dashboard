@@ -135,6 +135,22 @@ README, section « Sur Linux / macOS ». **Non testé par l'auteur.** En attenda
 
 ---
 
+## Étape 6b (optionnel) — Le bouton « Nouveau projet »
+
+> ⚠️ Mêmes réserves qu'à l'étape 6 : **poste local mono-utilisateur, loopback only.** Ceci
+> active un endpoint qui crée un dossier (`mkdir`) sous `root` à partir d'un nom saisi.
+
+1. Dans `config.php` : `'enable_create' => true,`
+2. Rechargez. Un bouton **« + Nouveau projet »** apparaît dans la barre d'outils.
+3. Cliquez, saisissez un nom (lettres, chiffres, `. _ -`). Le dossier est créé sous `root`.
+   Si `enable_launch` est aussi `true`, Claude s'ouvre sur le dossier ; sinon le dossier est
+   simplement créé et la page recharge.
+
+Le nom est sanitisé côté serveur (`^[A-Za-z0-9][A-Za-z0-9._-]*$`) et confiné à `root` via un
+contrôle `realpath` — le `mkdir` ne peut pas sortir du dossier scanné.
+
+---
+
 ## Dépannage
 
 | Symptôme | Piste |
@@ -145,6 +161,8 @@ README, section « Sur Linux / macOS ». **Non testé par l'auteur.** En attenda
 | **Bouton Claude : `forbidden`** | Normal hors loopback ou sans rechargement (jeton CSRF). Servez en `127.0.0.1` et rechargez. |
 | **Bouton Claude : `launch désactivé`** | `enable_launch` est `false` dans `config.php`. |
 | **Bouton Claude : aucune fenêtre** | Le serveur ne peut pas ouvrir de fenêtre GUI (session non interactive). Voir le fallback console dans `launch-claude.bat`. |
+| **Pas de bouton « Nouveau projet »** | `enable_create` est `false` (ou absent) dans `config.php`. |
+| **Nouveau projet : `nom invalide`** | Le nom contient des caractères hors `A-Z a-z 0-9 . _ -` (pas de `/`, `\`, espace). |
 
 ---
 
@@ -153,7 +171,7 @@ README, section « Sur Linux / macOS ». **Non testé par l'auteur.** En attenda
 `index.php` est **un seul fichier** dans cet ordre :
 
 1. **Config** : charge `config.php`.
-2. **Endpoint launch** : court-circuit si requête POST `launch` (sinon ignoré).
+2. **Endpoints launch / create** : court-circuit si requête POST `launch` ou `create` (sinon ignoré).
 3. **Helpers** : `scanActivity()`, `gitInfo()`, `statusFile()`, etc.
 4. **Collecte** : `foreach` sur les dossiers → tableau `$projects`.
 5. **Rendu HTML** + **CSS inline** (`:root` pour les couleurs) + **JS** (filtre/tri).

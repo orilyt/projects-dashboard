@@ -30,6 +30,8 @@ bouge, quelle est la prochaine étape*.
   sans jamais les exposer en HTTP.
 - **Bouton « Claude » optionnel** (Windows + WSL clé en main ; Linux/macOS adaptable) :
   rouvre un projet dans un terminal local. **Désactivé par défaut** — voir [Sécurité](#sécurité).
+- **Bouton « Nouveau projet » optionnel** : crée un dossier projet depuis le dashboard (et,
+  si le bouton Claude est actif, y ouvre Claude). **Désactivé par défaut** — voir [Sécurité](#sécurité).
 
 ---
 
@@ -86,6 +88,7 @@ pour que chaque poste ait le sien). Clés :
 | `enable_launch` | Active le bouton « Claude » (**exec local — voir Sécurité**). `false` par défaut. |
 | `launch.wsl_distro` | Nom de la distro WSL (`wsl -l -q`). |
 | `launch.command` | Commande lancée dans le dossier du projet. |
+| `enable_create` | Active le bouton « Nouveau projet » (**`mkdir` local — voir Sécurité**). `false` par défaut. |
 | `scan_file_cap` | Plafond de fichiers scannés/projet pour estimer l'activité (perf). |
 | `skip_dirs` | Dossiers jamais traversés pendant ce scan (lourds). |
 
@@ -171,11 +174,16 @@ machine qui sert PHP. Protections en place :
 - **Liste blanche** : seul un nom de projet réellement scanné est accepté ; le chemin est
   dérivé côté serveur, jamais construit depuis l'entrée utilisateur.
 
-**À respecter si vous l'activez :**
+Le **bouton « Nouveau projet »** (`enable_create`, également `false` par défaut) partage les
+mêmes gardes POST + CSRF + loopback, plus : le nom saisi doit matcher `^[A-Za-z0-9][A-Za-z0-9._-]*$`
+(pas de `/`, `\`, `..`, `:`, espace) et le parent résolu doit être exactement `root` (contrôle
+`realpath`) — le `mkdir` ne peut donc jamais sortir du dossier scanné.
+
+**À respecter si vous activez l'un ou l'autre :**
 
 - **Poste local mono-utilisateur uniquement.** Ne servez **jamais** ce dashboard sur
-  `0.0.0.0`, un réseau, un host partagé ou public avec `enable_launch = true` : ce serait
-  une **exécution de commande à distance**.
+  `0.0.0.0`, un réseau, un host partagé ou public avec `enable_launch` / `enable_create = true` :
+  ce serait une **exécution de commande à distance** / création de dossier arbitraire.
 - Ne retirez pas le contrôle loopback / CSRF.
 - `extra_roots` est lu côté serveur mais **n'est pas** servi en HTTP — ne placez pas le
   dashboard *dans* un dossier contenant des secrets en pensant qu'ils sont protégés ;
@@ -198,7 +206,7 @@ machine qui sert PHP. Protections en place :
 
 ```
 projets/
-├── index.php            # toute l'app : scan + rendu + endpoint launch (PHP + HTML + CSS + JS)
+├── index.php            # toute l'app : scan + rendu + endpoints launch/create (PHP + HTML + CSS + JS)
 ├── config.example.php   # modèle de config (commité)
 ├── config.php           # votre config locale (gitignoré)
 ├── launch-claude.bat    # lanceur Windows/WSL du bouton "Claude" (optionnel)
